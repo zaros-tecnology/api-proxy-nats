@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/rids"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/route/migration"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service/request"

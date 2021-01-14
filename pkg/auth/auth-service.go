@@ -4,9 +4,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models"
-	"github.com/zaros-tecnology/api-proxy-nats/internal/rids"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/auth/migration"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service"
 
 	"github.com/gofrs/uuid"

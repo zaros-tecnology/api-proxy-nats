@@ -1,7 +1,7 @@
 package migration
 
 import (
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models/migration"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models/migration"
 
 	"gorm.io/gorm"
 )

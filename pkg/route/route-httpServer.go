@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models"
-	"github.com/zaros-tecnology/api-proxy-nats/internal/rids"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/route/handlers"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/route/socket"
 

@@ -3,7 +3,7 @@ package socket
 import (
 	"sync"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service"
 
 	"github.com/gorilla/websocket"

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/rids"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
 
 	nats "github.com/nats-io/nats.go"
 )

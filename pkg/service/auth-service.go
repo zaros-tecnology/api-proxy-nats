@@ -3,7 +3,7 @@ package service
 import (
 	"net/http"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/rids"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
 )
 
 // Auth interface

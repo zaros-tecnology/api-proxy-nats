@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
 
 	nats "github.com/nats-io/nats.go"
 )

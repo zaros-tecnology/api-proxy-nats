@@ -3,7 +3,7 @@ package migration
 import (
 	"fmt"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service/request"
 
 	"gorm.io/gorm"

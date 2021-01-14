@@ -10,8 +10,8 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/nats-io/nats-server/v2/server"
-	"github.com/zaros-tecnology/api-proxy-nats/internal/rids"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/auth"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/route"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service"
 	"gorm.io/driver/postgres"

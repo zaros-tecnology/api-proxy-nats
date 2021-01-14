@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models"
-	"github.com/zaros-tecnology/api-proxy-nats/internal/utils"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/utils"
 )
 
 // RemoveAccessToken remove token

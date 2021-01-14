@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models"
-	"github.com/zaros-tecnology/api-proxy-nats/internal/rids"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service/request"
 
 	"github.com/go-chi/chi"

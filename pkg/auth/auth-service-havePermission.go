@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/zaros-tecnology/api-proxy-nats/internal/models"
+	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service/request"
 )
 
