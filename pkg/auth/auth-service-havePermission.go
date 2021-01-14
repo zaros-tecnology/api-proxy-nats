@@ -10,7 +10,7 @@ func (s *srv) userHavePermission(r *request.CallRequest) {
 	var req models.HavePermissionRequest
 	r.ParseData(&req)
 
-	user := r.Usuario()
+	user := r.User()
 
 	var perm models.Permission
 	err := s.DB().

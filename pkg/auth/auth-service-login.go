@@ -21,7 +21,7 @@ func (s *srv) login(r *request.CallRequest) {
 	r.ParseData(&u)
 
 	if u.Email == "" || u.Password == "" {
-		r.ErrorRequest(request.ErrorNotFound)
+		r.ErrorRequest(&request.ErrorNotFound)
 		return
 	}
 
