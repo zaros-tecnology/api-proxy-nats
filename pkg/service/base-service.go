@@ -25,7 +25,7 @@ type Endpoint interface {
 type Service interface {
 	Start()
 	Stop()
-	ServiceType() string
+	Rid() rids.BaseRid
 }
 
 // Base service
@@ -140,4 +140,9 @@ func (s *Base) ParseMessage(data []byte, p interface{}) {
 // ServiceType retorna nome do serviço
 func (s *Base) ServiceType() string {
 	return s.rid.Name()
+}
+
+// ServiceType retorna nome do serviço
+func (s *Base) Rid() rids.BaseRid {
+	return s.rid
 }
