@@ -23,6 +23,10 @@ type Base struct {
 	label string
 }
 
+func NewRid(name, label string) Base {
+	return Base{name, label}
+}
+
 // EndpointRest endpoint rest params
 type EndpointRest struct {
 	method        string
