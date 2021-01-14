@@ -23,11 +23,6 @@ type Base struct {
 	label string
 }
 
-// NewRid new rid
-func NewRid(name, label string) Base {
-	return Base{name, label}
-}
-
 // EndpointRest endpoint rest params
 type EndpointRest struct {
 	method        string
@@ -46,6 +41,8 @@ type Pattern struct {
 	Authenticated    bool
 	EndpointNoParams string
 	Params           map[string]string
+
+	p *method
 }
 
 type method struct {
@@ -70,12 +67,35 @@ func (p *Pattern) EndpointNoMethod() string {
 	return fmt.Sprintf("%v.%v", p.Service, p.Endpoint)
 }
 
+func (p *Pattern) EndpointHTTP() string {
+	endpoint := p.EndpointNoMethod()
+	for key, vl := range p.Params {
+		endpoint = strings.ReplaceAll(endpoint, "$"+key, vl)
+	}
+	return "/api/" + strings.ReplaceAll(endpoint, ".", "/")
+}
+
 // EndpointName retorna endpoint do pattern
 func (p *Pattern) EndpointName() string {
 	if p.Endpoint == "" {
 		return fmt.Sprintf("%v.%v", p.Service, p.Method)
 	}
 	return fmt.Sprintf("%v.%v.%v", p.Service, p.EndpointNoParams, p.Method)
+}
+
+// EndpointName retorna endpoint do pattern
+func (p Pattern) Concat(c string) *method {
+	endpointNoParams := p.EndpointNoParams + "." + c
+	endpoint := p.Endpoint + "." + c
+	return &method{
+		p.p.label,
+		p.p.service,
+		p.p.serviceLabel,
+		endpoint, "", true, p.p.params, endpointNoParams}
+}
+
+func (b *Base) ByID(id ...string) *Pattern {
+	return b.NewMethod("", "byId.$Id", id...).Get()
 }
 
 func (p *Base) NewMethod(label, endpoint string, params ...string) *method {
@@ -108,7 +128,7 @@ func (p *Base) Patterns() []*Pattern {
 }
 
 func (p *method) register(method string) *Pattern {
-	pa := &Pattern{p.label, p.service, p.serviceLabel, p.endpoint, method, p.auth, p.endpointNoParams, p.params}
+	pa := &Pattern{p.label, p.service, p.serviceLabel, p.endpoint, method, p.auth, p.endpointNoParams, p.params, p}
 	for _, p := range patterns {
 		if p.Endpoint == pa.Endpoint && p.Method == pa.Method && p.Service == pa.Service {
 			return pa
@@ -135,16 +155,12 @@ func (p *method) Put() *Pattern {
 	return p.register("PUT")
 }
 
-func (p *method) Copy() *Pattern {
-	return p.register("COPY")
-}
-
 func (p *method) Delete() *Pattern {
 	return p.register("DELETE")
 }
 
 func (p *method) Internal() *Pattern {
-	return &Pattern{p.label, p.service, p.serviceLabel, p.endpoint, "INTERNAL", false, p.endpointNoParams, p.params}
+	return &Pattern{p.label, p.service, p.serviceLabel, p.endpoint, "INTERNAL", false, p.endpointNoParams, p.params, p}
 }
 
 func (p *Pattern) register(r *chi.Mux, hc func(endpoint EndpointRest, w http.ResponseWriter, r *http.Request)) {
