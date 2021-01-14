@@ -23,6 +23,11 @@ type Base struct {
 	label string
 }
 
+// NewRid new rid
+func NewRid(name, label string) Base {
+	return Base{name, label}
+}
+
 // EndpointRest endpoint rest params
 type EndpointRest struct {
 	method        string
@@ -73,7 +78,7 @@ func (p *Pattern) EndpointName() string {
 	return fmt.Sprintf("%v.%v.%v", p.Service, p.EndpointNoParams, p.Method)
 }
 
-func (p *Base) newMethod(label, endpoint string, params ...string) *method {
+func (p *Base) NewMethod(label, endpoint string, params ...string) *method {
 	endpointNoParams := endpoint
 	sp := strings.Split(endpoint, ".")
 	var paramsEndpoint = make(map[string]string)
@@ -113,32 +118,32 @@ func (p *method) register(method string) *Pattern {
 	return pa
 }
 
-func (p *method) noAuth() *method {
+func (p *method) NoAuth() *method {
 	p.auth = false
 	return p
 }
 
-func (p *method) get() *Pattern {
+func (p *method) Get() *Pattern {
 	return p.register("GET")
 }
 
-func (p *method) post() *Pattern {
+func (p *method) Post() *Pattern {
 	return p.register("POST")
 }
 
-func (p *method) put() *Pattern {
+func (p *method) Put() *Pattern {
 	return p.register("PUT")
 }
 
-func (p *method) copy() *Pattern {
+func (p *method) Copy() *Pattern {
 	return p.register("COPY")
 }
 
-func (p *method) delete() *Pattern {
+func (p *method) Delete() *Pattern {
 	return p.register("DELETE")
 }
 
-func (p *method) internal() *Pattern {
+func (p *method) Internal() *Pattern {
 	return &Pattern{p.label, p.service, p.serviceLabel, p.endpoint, "INTERNAL", false, p.endpointNoParams, p.params}
 }
 
@@ -205,7 +210,7 @@ func Routes(patterns []*Pattern, r *chi.Mux, hc func(endpoint EndpointRest, w ht
 func (p *Base) Routes(service string, key uuid.UUID) *Pattern {
 	endpoint := fmt.Sprintf("route.%v", key.String())
 	m := &method{"", service, "", endpoint, "", false, nil, endpoint}
-	return m.get()
+	return m.Get()
 }
 
 // Name retorna nome do serviço

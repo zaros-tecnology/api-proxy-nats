@@ -12,13 +12,13 @@ func Route() *route {
 }
 
 func (r *route) SocketNewMessage() *Pattern {
-	return r.newMethod("", "newMessageSocket").internal()
+	return r.NewMethod("", "newMessageSocket").Internal()
 }
 
 func (r *route) NewService() *Pattern {
-	return r.newMethod("", "newService").internal()
+	return r.NewMethod("", "newService").Internal()
 }
 
 func (r *route) Restart() *Pattern {
-	return r.newMethod("", "restart").internal()
+	return r.NewMethod("", "restart").Internal()
 }

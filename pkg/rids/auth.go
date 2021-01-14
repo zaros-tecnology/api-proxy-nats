@@ -12,13 +12,13 @@ func Auth() *auth {
 }
 
 func (s *auth) ValidationBearerToken() *Pattern {
-	return s.newMethod("", "ValidationBearerToken.$token").internal()
+	return s.NewMethod("", "ValidationBearerToken.$token").Internal()
 }
 
 func (s *auth) Login() *Pattern {
-	return s.newMethod("", "login").noAuth().post()
+	return s.NewMethod("", "login").NoAuth().Post()
 }
 
 func (s *auth) HavePermission() *Pattern {
-	return s.newMethod("", "havePermission").internal()
+	return s.NewMethod("", "havePermission").Internal()
 }
