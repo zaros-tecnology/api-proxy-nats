@@ -6,7 +6,6 @@ import (
 	"os"
 	"runtime/debug"
 	"sync"
-	"time"
 
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/models"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/models/migration"
@@ -18,11 +17,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type Endpoint interface {
+	Register(b *Base)
+}
+
 // Service base
 type Service interface {
 	Start()
 	Stop()
-	Rid() rids.BaseRid
+	ServiceType() string
 }
 
 // Base service
@@ -33,6 +36,10 @@ type Base struct {
 	m   sync.Mutex
 
 	rid rids.BaseRid
+}
+
+func (b *Base) AddEndpoint(endpoint Endpoint) {
+	endpoint.Register(b)
 }
 
 // NewBaseService nova instancia base
@@ -89,7 +96,7 @@ func (s *Base) Init(migration migration.Migration) {
 		migration.Magration(s.DB(), s.nc)
 	}
 
-	if s.Rid().Name() == rids.Route().Name() {
+	if s.ServiceType() == rids.Route().Name() {
 		s.Nats().Subscribe(rids.Route().NewService(), func(msg *request.CallRequest) {
 			var srv models.Service
 			msg.ParseData(&srv)
@@ -112,16 +119,10 @@ func (s *Base) Init(migration migration.Migration) {
 	}
 
 	var srv models.Service
-	rError := s.Nats().Request(rids.Route().NewService(), request.NewRequest(models.Service{Type: s.rid.Name(), ServiceKey: s.key}), &srv)
+	rError := s.Nats().Request(rids.Route().NewService(),
+		request.NewRequest(models.Service{Type: s.rid.Name(), ServiceKey: s.key}), &srv)
 	if rError != nil || srv.ID == uuid.Nil {
 		panic(err)
-	}
-
-	if s.Rid().Name() != rids.Route().Name() {
-		go func() {
-			<-time.After(time.Second)
-			s.Nats().Publish(rids.Route().Restart(), request.EmptyRequest())
-		}()
 	}
 }
 
@@ -136,7 +137,7 @@ func (s *Base) ParseMessage(data []byte, p interface{}) {
 	json.Unmarshal(data, p)
 }
 
-// Rid retorna nome do serviço
-func (s *Base) Rid() rids.BaseRid {
-	return s.rid
+// ServiceType retorna nome do serviço
+func (s *Base) ServiceType() string {
+	return s.rid.Name()
 }

@@ -33,26 +33,50 @@ func (s *NatsConn) Timeout() time.Duration {
 }
 
 // Subscribe endpoint nats
-func (s *NatsConn) Subscribe(p *rids.Pattern, hc func(msg *CallRequest)) (*nats.Subscription, error) {
+func (s *NatsConn) Subscribe(p *rids.Pattern,
+	hc func(msg *CallRequest),
+	access ...func(msg *AccessRequest)) (*nats.Subscription, error) {
 	return s.Conn.Subscribe(p.EndpointName(), func(m *nats.Msg) {
 		var msg CallRequest
 		msg.Unmarshal(m.Data, m.Reply, s.Conn)
+		if len(access) > 0 {
+			acr := AccessRequest{
+				CallRequest: &msg,
+				err:         true,
+			}
+			access[0](&acr)
+			if acr.err {
+				msg.error(ErrorStatusUnauthorized)
+				return
+			}
+		}
 		hc(&msg)
 	})
 }
 
 // Publish endpoint nats
-func (s *NatsConn) Publish(p *rids.Pattern, payload CallRequest) error {
+func (s *NatsConn) Publish(p *rids.Pattern, payload CallRequest, token ...interface{}) error {
 	return s.Conn.Publish(p.EndpointName(), payload.ToJSON())
 }
 
+// Get endpoint nats
+func (s *NatsConn) Get(p *rids.Pattern, rs interface{}, token ...json.RawMessage) *ErrorRequest {
+	return s.Request(p, nil, rs, token...)
+}
+
 // Request endpoint nats
-func (s *NatsConn) Request(p *rids.Pattern, payload CallRequest, rs interface{}) *ErrorRequest {
+func (s *NatsConn) Request(p *rids.Pattern, payload *CallRequest, rs interface{}, token ...json.RawMessage) *ErrorRequest {
+	if payload == nil {
+		payload = &CallRequest{}
+	}
 	if payload.Params == nil {
 		payload.Params = make(map[string]string)
 	}
 	for key := range p.Params {
 		payload.Params[key] = p.Params[key]
+	}
+	if len(token) > 0 {
+		payload.Header.Set("Token", string(token[0]))
 	}
 	result, err := s.Conn.Request(p.EndpointName(), payload.ToJSON(), time.Duration(timeout)*time.Second)
 	if err != nil {

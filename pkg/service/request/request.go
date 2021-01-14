@@ -12,6 +12,11 @@ import (
 	nats "github.com/nats-io/nats.go"
 )
 
+type AccessRequest struct {
+	*CallRequest
+	err bool
+}
+
 // CallRequest handler
 type CallRequest struct {
 	Params map[string]string
@@ -31,12 +36,22 @@ type ErrorRequest struct {
 	Error   error
 }
 
-// Usuario logado
-func (c *CallRequest) Usuario() models.User {
-	var usuario models.User
-	user := c.Header.Get("User")
-	json.Unmarshal([]byte(user), &usuario)
-	return usuario
+// ParseToken logado
+func (c *CallRequest) ParseToken(t interface{}) {
+	token := c.Header.Get("Token")
+	json.Unmarshal([]byte(token), &t)
+}
+
+func (c *CallRequest) RawToken() json.RawMessage {
+	return []byte(c.Header.Get("Token"))
+}
+
+// User logado
+func (c *CallRequest) User() models.User {
+	var user models.User
+	userStr := c.Header.Get("User")
+	json.Unmarshal([]byte(userStr), &user)
+	return user
 }
 
 // Parse error request
@@ -51,35 +66,35 @@ func (e ErrorRequest) ToJSON() []byte {
 }
 
 // EmptyRequest empty
-func EmptyRequest() CallRequest {
-	return CallRequest{}
+func EmptyRequest() *CallRequest {
+	return &CallRequest{}
 }
 
 // NewRequest nova instancia da call request
-func NewRequest(data interface{}) CallRequest {
+func NewRequest(data interface{}) *CallRequest {
 	switch data.(type) {
 	case []byte:
 		panic("invalid data")
 	}
 	payload, _ := json.Marshal(data)
-	return CallRequest{
+	return &CallRequest{
 		Params: nil,
 		Data:   payload,
 	}
 }
 
 // CloneRequest clone request
-func (c CallRequest) CloneRequest(data interface{}) CallRequest {
+func (c CallRequest) CloneRequest(data interface{}) *CallRequest {
 	switch data.(type) {
 	case []byte:
 		panic("invalid data")
 	}
 	c.Data, _ = json.Marshal(data)
-	return c
+	return &c
 }
 
-// ParamURL retorna parametro map string
-func (c *CallRequest) ParamURL(key string) string {
+// PathParam retorna parametro map string
+func (c *CallRequest) PathParam(key string) string {
 	return c.Params[key]
 }
 
@@ -135,8 +150,11 @@ func (c *CallRequest) Error(err error) {
 }
 
 // ErrorRequest result
-func (c *CallRequest) ErrorRequest(err ErrorRequest) {
-	c.error(err)
+func (c *CallRequest) ErrorRequest(err *ErrorRequest) {
+	if err == nil {
+		panic("error request cant be nil")
+	}
+	c.error(*err)
 }
 
 // Error result
@@ -151,7 +169,29 @@ var (
 	ErrorStatusUnauthorized       = ErrorRequest{"not authorized", http.StatusUnauthorized, fmt.Errorf("not authorized")}
 	ErrorInvalidParams            = ErrorRequest{"invalid params", http.StatusUnauthorized, fmt.Errorf("invalid params")}
 	ErrorInternalServerError      = ErrorRequest{"internal error", http.StatusUnauthorized, fmt.Errorf("internal error")}
+	ErrorAccessDenied             = ErrorRequest{"access denied", http.StatusUnauthorized, fmt.Errorf("access denied")}
 )
+
+// Error result
+func (c *CallRequest) NotFound() {
+	c.error(ErrorNotFound)
+}
+
+func (c *AccessRequest) AccessDenied() {
+	c.err = true
+}
+
+func (c *AccessRequest) AccessGranted() {
+	c.err = false
+}
+
+func InternalError(err error) *ErrorRequest {
+	return &ErrorRequest{
+		Message: err.Error(),
+		Code:    http.StatusInternalServerError,
+		Error:   err,
+	}
+}
 
 // Search query de search
 func (c *CallRequest) Search(columns ...string) string {
