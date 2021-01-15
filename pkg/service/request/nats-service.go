@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
@@ -44,10 +45,26 @@ func (s *NatsConn) Subscribe(p *rids.Pattern,
 				CallRequest: &msg,
 				err:         true,
 			}
+
 			access[0](&acr)
 			if acr.err {
 				msg.error(ErrorStatusUnauthorized)
 				return
+			}
+
+			if acr.get != nil && *acr.get && p.Method != "GET" {
+				msg.error(ErrorStatusUnauthorized)
+				return
+			}
+			if acr.get != nil && !*acr.get {
+				match := false
+				for _, m := range acr.methods {
+					match = match || strings.Contains(p.EndpointName(), m)
+				}
+				if !match {
+					msg.error(ErrorStatusUnauthorized)
+					return
+				}
 			}
 		}
 		hc(&msg)

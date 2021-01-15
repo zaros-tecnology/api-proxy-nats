@@ -14,7 +14,9 @@ import (
 
 type AccessRequest struct {
 	*CallRequest
-	err bool
+	err     bool
+	get     *bool
+	methods []string
 }
 
 // CallRequest handler
@@ -177,6 +179,11 @@ func (c *CallRequest) NotFound() {
 	c.error(ErrorNotFound)
 }
 
+func (c *AccessRequest) Access(get bool, methods ...string) {
+	c.err = false
+	c.get = &get
+	c.methods = methods
+}
 func (c *AccessRequest) AccessDenied() {
 	c.err = true
 }
