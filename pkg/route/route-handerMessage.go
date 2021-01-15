@@ -53,9 +53,8 @@ func (b *routeService) handler(endpoint rids.EndpointRest, w http.ResponseWriter
 		Method:   values[len(values)-1],
 	}
 
-	if endpoint.Authenticated {
-		if len(b.auths) > 0 {
-		}
+	if endpoint.Authenticated && len(b.auths) > 0 {
+
 		callAuth := request.NewRequest(permission)
 		callAuth.Form = r.Form
 		callAuth.Header = r.Header
