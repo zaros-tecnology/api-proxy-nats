@@ -1,6 +1,7 @@
 package apiproxynats
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -47,10 +48,11 @@ func (p *ProxyOptions) IsValid() error {
 }
 
 // NewProxyServer new service proxy
-func NewProxyServer(services []HandlerService, options ProxyOptions) error {
+func NewProxyServer(services []HandlerService, options ProxyOptions) (ctx context.Context, connected chan bool, err error) {
 
-	if err := options.IsValid(); err != nil {
-		return err
+	err = options.IsValid()
+	if err != nil {
+		return
 	}
 
 	servicesType := make(map[string]string)
@@ -62,60 +64,67 @@ func NewProxyServer(services []HandlerService, options ProxyOptions) error {
 		s = runDefaultServer()
 	}
 
-	sigs := make(chan os.Signal, 1)
-	done := make(chan bool, 1)
-
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-
 	db, err := connectDatabase(options.ConnectionString)
 	if err != nil {
-		panic(err)
+		return
 	}
 
-	key, _ := uuid.NewV4()
-	v5 := uuid.NewV5(key, "github.com/zaros-tecnology/api-proxy-nats")
+	ctx, cancel := context.WithCancel(context.Background())
 
-	authService := auth.NewService(db, v5)
-	routerService := route.NewService(db, v5,
-		&service.AuthRid{Auth: authService, Rid: rids.Auth()},
-	)
-
-	if servicesType[routerService.Rid().Name()] == routerService.Rid().Name() || options.Developer {
-		routerService.Start()
-		authService.Start()
-	}
-
-	var wg sync.WaitGroup
-	wg.Add(len(services))
-
-	for _, srv := range services {
-		go func(srv HandlerService) {
-
-			defer wg.Done()
-			s := srv(db, v5)
-
-			if servicesType[s.Rid().Name()] == s.Rid().Name() || options.Developer {
-
-				routerService.AddAuthRid(&service.AuthRid{Auth: authService, Rid: s.Rid()})
-				s.Start()
-
-				fmt.Println(">> Starting ", s.Rid().Name())
-			}
-
-		}(srv)
-	}
-
-	wg.Wait()
+	connected = make(chan bool)
 
 	go func() {
-		sig := <-sigs
-		fmt.Println(sig)
-		done <- true
+		sigs := make(chan os.Signal, 1)
+
+		signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+		key, _ := uuid.NewV4()
+		v5 := uuid.NewV5(key, "github.com/zaros-tecnology/api-proxy-nats")
+
+		authService := auth.NewService(db, v5)
+		routerService := route.NewService(db, v5,
+			&service.AuthRid{Auth: authService, Rid: rids.Auth()},
+		)
+
+		if servicesType[routerService.Rid().Name()] == routerService.Rid().Name() || options.Developer {
+			routerService.Start()
+			authService.Start()
+		}
+
+		var wg sync.WaitGroup
+		wg.Add(len(services))
+
+		for _, srv := range services {
+			go func(srv HandlerService) {
+
+				defer wg.Done()
+				s := srv(db, v5)
+
+				if servicesType[s.Rid().Name()] == s.Rid().Name() || options.Developer {
+
+					routerService.AddAuthRid(&service.AuthRid{Auth: authService, Rid: s.Rid()})
+					s.Start()
+
+					fmt.Println(">> Starting ", s.Rid().Name())
+				}
+
+			}(srv)
+		}
+
+		wg.Wait()
+
+		go func() {
+			sig := <-sigs
+			fmt.Println(sig)
+			cancel()
+		}()
+
+		connected <- true
+
+		<-ctx.Done()
 	}()
 
-	<-done
-
-	return fmt.Errorf("server closed")
+	return
 }
 
 func connectDatabase(connectionString string) (*gorm.DB, error) {
