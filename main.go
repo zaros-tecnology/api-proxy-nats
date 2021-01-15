@@ -32,6 +32,9 @@ type ProxyOptions struct {
 // HandlerService handler
 type HandlerService func(db *gorm.DB, key uuid.UUID) service.Service
 
+// HandlerAuthService required instance auth service
+type HandlerAuthService func(db *gorm.DB, key uuid.UUID) service.Auth
+
 // IsValid validate options
 func (p *ProxyOptions) IsValid() error {
 	if len(p.ConnectionString) == 0 {
@@ -47,7 +50,7 @@ func (p *ProxyOptions) IsValid() error {
 }
 
 // NewProxyServer new service proxy
-func NewProxyServer(authService service.Auth, services []HandlerService, options ProxyOptions) (ctx context.Context, connected chan bool, err error) {
+func NewProxyServer(services []HandlerService, handerAuth HandlerAuthService, options ProxyOptions) (ctx context.Context, connected chan bool, err error) {
 
 	err = options.IsValid()
 	if err != nil {
@@ -80,6 +83,7 @@ func NewProxyServer(authService service.Auth, services []HandlerService, options
 		key, _ := uuid.NewV4()
 		v5 := uuid.NewV5(key, "github.com/zaros-tecnology/api-proxy-nats")
 
+		authService := handerAuth(db, v5)
 		routerService := route.NewService(db, v5,
 			&service.AuthRid{Auth: authService, Rid: rids.Auth()},
 		)
