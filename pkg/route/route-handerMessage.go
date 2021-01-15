@@ -54,12 +54,13 @@ func (b *routeService) handler(endpoint rids.EndpointRest, w http.ResponseWriter
 	}
 
 	if endpoint.Authenticated {
+		if len(b.auths) > 0 {
+		}
 		callAuth := request.NewRequest(permission)
 		callAuth.Form = r.Form
 		callAuth.Header = r.Header
 
-		rError := b.Nats().Request(rids.Auth().HavePermission(), callAuth, nil)
-		if rError != nil {
+		if !b.auths[0].Auth.UserHavePermission(callAuth) {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}

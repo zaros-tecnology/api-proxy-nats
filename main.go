@@ -11,7 +11,6 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/nats-io/nats-server/v2/server"
-	"github.com/zaros-tecnology/api-proxy-nats/pkg/auth"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/rids"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/route"
 	"github.com/zaros-tecnology/api-proxy-nats/pkg/service"
@@ -48,7 +47,7 @@ func (p *ProxyOptions) IsValid() error {
 }
 
 // NewProxyServer new service proxy
-func NewProxyServer(services []HandlerService, options ProxyOptions) (ctx context.Context, connected chan bool, err error) {
+func NewProxyServer(authService service.Auth, services []HandlerService, options ProxyOptions) (ctx context.Context, connected chan bool, err error) {
 
 	err = options.IsValid()
 	if err != nil {
@@ -81,14 +80,12 @@ func NewProxyServer(services []HandlerService, options ProxyOptions) (ctx contex
 		key, _ := uuid.NewV4()
 		v5 := uuid.NewV5(key, "github.com/zaros-tecnology/api-proxy-nats")
 
-		authService := auth.NewService(db, v5)
 		routerService := route.NewService(db, v5,
 			&service.AuthRid{Auth: authService, Rid: rids.Auth()},
 		)
 
 		if servicesType[routerService.Rid().Name()] == routerService.Rid().Name() || options.Developer {
 			routerService.Start()
-			authService.Start()
 		}
 
 		var wg sync.WaitGroup
